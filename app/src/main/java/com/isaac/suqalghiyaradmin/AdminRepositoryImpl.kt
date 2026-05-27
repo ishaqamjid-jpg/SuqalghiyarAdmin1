@@ -1,4 +1,3 @@
-
 package com.isaac.souqalghiyaradmin.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
@@ -12,23 +11,23 @@ class AdminRepositoryImpl @Inject constructor() : AdminRepository {
 
     override suspend fun loginAdmin(username: String, password: String): String? {
         return try {
-            // البحث في الكولكشن الذي بنيته في Firebase
+            // الآن نستخدم أسماء الحقول الصحيحة كما في Firebase
             val snapshot = db.collection("users_emp")
-                .whereEqualTo("Usrename", username)
-                .whereEqualTo("Password", password)
+                .whereEqualTo("username", username) 
+                .whereEqualTo("password", password)
                 .get()
-                .await() // ننتظر الرد من الإنترنت
+                .await() 
             
             if (!snapshot.isEmpty) {
-                // إذا وجد الموظف، نرجع صلاحيته (Access)
+                // نستخدم "access" لأن الحقل في Firebase الآن بحروف صغيرة
                 val document = snapshot.documents[0]
-                document.getString("Access") // إما Admin أو Employ
+                document.getString("access") 
             } else {
-                null // اسم المستخدم أو كلمة المرور خطأ
+                null 
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            null // حدث خطأ في الاتصال بالإنترنت
+            null
         }
     }
 }
