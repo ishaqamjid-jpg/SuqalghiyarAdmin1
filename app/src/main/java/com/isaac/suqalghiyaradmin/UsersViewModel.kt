@@ -1,40 +1,58 @@
-package com.hadahapp.inventory.presentation.ui.user
+package com.isaac.souqalghiyaradmin.presentation.users
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hadahapp.inventory.data.repository.UserRepository
-import com.hadahapp.inventory.domain.model.User
+import com.google.firebase.firestore.FirebaseFirestore
+import com.isaac.souqalghiyaradmin.domain.model.UserEmp
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class UsersViewModel @Inject constructor(
-    private val userRepository: UserRepository
-) : ViewModel() {
+class UsersViewModel @Inject constructor() : ViewModel() {
 
-    // جلب المستخدمين كمراقب حي (Live Update)
-    val users = userRepository.getAllUsers()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val db = FirebaseFirestore.getInstance()
+    private val _users = MutableStateFlow<List<UserEmp>>(emptyList())
+    val users: StateFlow<List<UserEmp>> = _users
 
-    fun saveUser(userId: Int?, name: String, userName: String, pass: String, isAdmin: Boolean) {
-        viewModelScope.launch {
-            val user = User(
-                userId = userId ?: 0, // 0 يعني جديد
-                name = name,
-                userName = userName,
-                password = pass,
-                employId = if (isAdmin) 0 else 1 // 0 للأدمن، 1 للموظف
-            )
-            userRepository.insertUser(user)
+    init {
+        fetchUsers()
+    }
+
+    private fun fetchUsers() {
+        db.collection("users_emp").addSnapshotListener { snapshot, _ ->
+            if (snapshot != null) {
+                _users.value = snapshot.documents.map { doc ->
+                    doc.toObject(UserEmp::class.java)?.copy(id = doc.id) ?: UserEmp()
+                }
+            }
         }
     }
 
-    fun deleteUser(userId: Int) {
+    fun saveUser(id: String, name: String, username: String, password: String, access: String) {
         viewModelScope.launch {
-            userRepository.deleteUserById(userId)
+            val userMap = mapOf(
+                "name" to name,
+                "username" to username,
+                "password" to password,
+                "access" to access
+            )
+
+            if (id.isEmpty()) {
+                // إضافة مستخدم جديد (Auto-ID)
+                db.collection("users_emp").add(userMap)
+            } else {
+                // تحديث مستخدم موجود
+                db.collection("users_emp").document(id).set(userMap)
+            }
+        }
+    }
+
+    fun deleteUser(id: String) {
+        viewModelScope.launch {
+            db.collection("users_emp").document(id).delete()
         }
     }
 }
