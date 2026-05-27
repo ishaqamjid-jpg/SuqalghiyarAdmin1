@@ -1,4 +1,3 @@
-
 package com.isaac.souqalghiyaradmin.presentation.login
 
 import android.app.Application
@@ -7,10 +6,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.isaac.souqalghiyaradmin.domain.repository.AdminRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// حالة واجهة المستخدم
 data class LoginUiState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
@@ -20,7 +22,7 @@ data class LoginUiState(
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val adminRepository: AdminRepository, // حقن الـ Repository
+    private val adminRepository: AdminRepository,
     application: Application
 ) : AndroidViewModel(application) {
 
@@ -36,9 +38,17 @@ class LoginViewModel @Inject constructor(
     private val _rememberMe = MutableStateFlow(false)
     val rememberMe: StateFlow<Boolean> = _rememberMe.asStateFlow()
 
-    fun onUsernameChange(name: String) { _username.value = name }
-    fun onPasswordChange(pass: String) { _password.value = pass }
-    fun onRememberMeChange(checked: Boolean) { _rememberMe.value = checked }
+    fun onUsernameChange(name: String) {
+        _username.value = name
+    }
+
+    fun onPasswordChange(pass: String) {
+        _password.value = pass
+    }
+
+    fun onRememberMeChange(checked: Boolean) {
+        _rememberMe.value = checked
+    }
 
     fun login(onSuccess: (String) -> Unit) {
         val user = _username.value.trim()
@@ -52,13 +62,12 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
-            // الاتصال بقاعدة البيانات عبر الـ Repository
+            // الاتصال بـ Repository الذي يجلب البيانات من Firebase
             val accessType = adminRepository.loginAdmin(user, pass)
 
             if (accessType != null) {
                 _uiState.value = _uiState.value.copy(isLoading = false, isSuccess = true, accessType = accessType)
                 
-                // حفظ الجلسة إذا كان تذكرني مفعلاً
                 if (_rememberMe.value) {
                     saveSessionLocally(user, accessType)
                 }
