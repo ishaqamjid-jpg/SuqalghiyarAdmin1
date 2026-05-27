@@ -1,9 +1,9 @@
 package com.isaac.souqalghiyaradmin.domain.model
 
 data class UserEmp(
-    val Id: String = "",       // مطابق للـ Document ID في Firebase
-    val username: String = "", // تم تعديلها لتطابق الصورة
-    val password: String = "", // تم تعديلها لتطابق الصورة
-    val Name: String = "",     // كما هو في الصورة
-    val Access: String = "employ"
+    val id: String = "",       // هذا سيكون مخزناً فيه الـ Document ID بعد جلبه من Firebase
+    val username: String = "", 
+    val password: String = "", 
+    val name: String = "",     
+    val access: String = "employ"
 )
