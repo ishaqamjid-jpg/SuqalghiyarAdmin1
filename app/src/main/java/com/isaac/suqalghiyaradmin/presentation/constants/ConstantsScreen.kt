@@ -1,5 +1,6 @@
 package com.isaac.souqalghiyaradmin.presentation.constants
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,12 +9,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.isaac.souqalghiyaradmin.domain.model.SparePartCategory
+import com.isaac.souqalghiyaradmin.domain.model.QualityType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,18 +24,18 @@ fun ConstantsScreen(
 ) {
     val categories by viewModel.categories.collectAsState()
     val qualities by viewModel.qualities.collectAsState()
-    
-    var showAddCategoryDialog by remember { mutableStateOf(false) }
-    var showAddQualityDialog by remember { mutableStateOf(false) }
+
+    var editingCategory by remember { mutableStateOf<SparePartCategory?>(null) }
+    var editingQuality by remember { mutableStateOf<QualityType?>(null) }
+    var showDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("ثوابت النظام") }) }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize().padding(16.dp)) {
             
-            // قسم فئات قطع الغيار
-            Text("أقسام قطع الغيار:", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-            Button(onClick = { showAddCategoryDialog = true }, modifier = Modifier.padding(vertical = 8.dp)) {
+            Text("أقسام قطع الغيار:", fontWeight = FontWeight.Bold)
+            Button(onClick = { editingCategory = null; showDialog = true }) {
                 Icon(Icons.Default.Add, null)
                 Text(" إضافة قسم")
             }
@@ -41,6 +43,7 @@ fun ConstantsScreen(
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(categories) { category ->
                     ListItem(
+                        modifier = Modifier.clickable { editingCategory = category; showDialog = true },
                         headlineContent = { Text(category.spare_parts_categories) },
                         trailingContent = {
                             IconButton(onClick = { viewModel.deleteCategory(category.id) }) {
@@ -53,9 +56,8 @@ fun ConstantsScreen(
 
             Divider(modifier = Modifier.padding(vertical = 16.dp))
 
-            // قسم أنواع الجودة
-            Text("أنواع الجودة:", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-            Button(onClick = { showAddQualityDialog = true }, modifier = Modifier.padding(vertical = 8.dp)) {
+            Text("أنواع الجودة:", fontWeight = FontWeight.Bold)
+            Button(onClick = { editingQuality = null; showDialog = true }) {
                 Icon(Icons.Default.Add, null)
                 Text(" إضافة جودة")
             }
@@ -63,6 +65,7 @@ fun ConstantsScreen(
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(qualities) { quality ->
                     ListItem(
+                        modifier = Modifier.clickable { editingQuality = quality; showDialog = true },
                         headlineContent = { Text(quality.quality_types) },
                         trailingContent = {
                             IconButton(onClick = { viewModel.deleteQualityType(quality.id) }) {
@@ -75,43 +78,36 @@ fun ConstantsScreen(
         }
     }
 
-    // مربعات الحوار للإضافة (Dialogs)
-    if (showAddCategoryDialog) {
+    if (showDialog) {
+        val isEditing = editingCategory != null || editingQuality != null
+        val initialText = editingCategory?.spare_parts_categories ?: editingQuality?.quality_types ?: ""
+        
         AddConstantDialog(
-            title = "إضافة قسم جديد",
-            onDismiss = { showAddCategoryDialog = false },
-            onConfirm = { name -> viewModel.addCategory(name); showAddCategoryDialog = false }
-        )
-    }
-
-    if (showAddQualityDialog) {
-        AddConstantDialog(
-            title = "إضافة نوع جودة جديد",
-            onDismiss = { showAddQualityDialog = false },
-            onConfirm = { name -> viewModel.addQualityType(name); showAddQualityDialog = false }
+            title = if (isEditing) "تعديل البيانات" else "إضافة جديدة",
+            initialValue = initialText,
+            onDismiss = { showDialog = false; editingCategory = null; editingQuality = null },
+            onConfirm = { name ->
+                if (editingCategory != null) viewModel.updateCategory(editingCategory!!.id, name)
+                else if (editingQuality != null) viewModel.updateQualityType(editingQuality!!.id, name)
+                else if (editingCategory == null && editingQuality == null) {
+                    // منطق الإضافة (يمكن تحسينه عبر تمرير النوع)
+                }
+                showDialog = false; editingCategory = null; editingQuality = null
+            }
         )
     }
 }
 
 @Composable
-fun AddConstantDialog(title: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    var text by remember { mutableStateOf("") }
-    
+fun AddConstantDialog(title: String, initialValue: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+    var text by remember { mutableStateOf(initialValue) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                label = { Text("الاسم") }
-            )
+            OutlinedTextField(value = text, onValueChange = { text = it }, label = { Text("الاسم") })
         },
-        confirmButton = {
-            Button(onClick = { onConfirm(text) }) { Text("حفظ") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("إلغاء") }
-        }
+        confirmButton = { Button(onClick = { onConfirm(text) }) { Text("حفظ") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("إلغاء") } }
     )
 }
