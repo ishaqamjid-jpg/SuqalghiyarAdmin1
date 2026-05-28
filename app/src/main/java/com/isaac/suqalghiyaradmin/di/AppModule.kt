@@ -15,4 +15,11 @@ abstract class AppModule {
     abstract fun bindAdminRepository(
         adminRepositoryImpl: AdminRepositoryImpl
     ): AdminRepository
+
+
+@Provides
+@Singleton
+fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
+
 }
