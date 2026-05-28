@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
                         // --- 3. شاشة إدارة الموظفين ---
                         composable("users_emp") {
                             UsersSettingsScreen(
-                                onBackClick = { navController.popBackStack() }
+                                onBackClick = { navController.popBackStack() } // هذا هو المكان الذي يربط الزر بالرجوع
                             )
                         }
                         

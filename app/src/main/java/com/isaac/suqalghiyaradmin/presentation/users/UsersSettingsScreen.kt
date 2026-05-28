@@ -7,24 +7,37 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.isaac.souqalghiyaradmin.domain.model.UserEmp
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UsersSettingsScreen(viewModel: UsersViewModel = hiltViewModel()) {
+fun UsersSettingsScreen(
+    viewModel: UsersViewModel = hiltViewModel(),
+    onBackClick: () -> Unit // تمت إضافة هذه المعلمة للرجوع
+) {
     val users by viewModel.users.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
     var userToEdit by remember { mutableStateOf<UserEmp?>(null) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("إدارة الموظفين") }) },
+        topBar = {
+            TopAppBar(
+                title = { Text("إدارة الموظفين") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "رجوع")
+                    }
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = { userToEdit = null; showDialog = true }) {
-                Icon(Icons.Default.Add, "إضافة")
+                Icon(Icons.Default.Add, contentDescription = "إضافة")
             }
         }
     ) { padding ->
@@ -36,10 +49,10 @@ fun UsersSettingsScreen(viewModel: UsersViewModel = hiltViewModel()) {
                     trailingContent = {
                         Row {
                             IconButton(onClick = { userToEdit = user; showDialog = true }) {
-                                Icon(Icons.Default.Edit, "تعديل")
+                                Icon(Icons.Default.Edit, contentDescription = "تعديل")
                             }
                             IconButton(onClick = { viewModel.deleteUser(user.id) }) {
-                                Icon(Icons.Default.Delete, "حذف", tint = Color.Red)
+                                Icon(Icons.Default.Delete, contentDescription = "حذف", tint = Color.Red)
                             }
                         }
                     }
@@ -48,6 +61,7 @@ fun UsersSettingsScreen(viewModel: UsersViewModel = hiltViewModel()) {
         }
 
         if (showDialog) {
+            // تأكد من وجود دالة UserEditorDialog في مشروعك
             UserEditorDialog(
                 user = userToEdit,
                 onDismiss = { showDialog = false },

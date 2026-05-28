@@ -44,8 +44,11 @@ fun OrderExpandableCard(order: Order, viewModel: OrdersViewModel) {
     var price by remember { mutableStateOf("") }
 
     // جلب القطع فقط عند التوسع
+// جلب القطع فقط عند التوسع
     LaunchedEffect(expanded) {
         if (expanded && items.isEmpty()) {
+            // بما أننا داخل LaunchedEffect، فهو يعمل بالفعل كـ Coroutine Scope
+            // لذا يمكننا استدعاء دالة suspend مباشرة
             items = viewModel.getOrderItems(order.order_id)
         }
     }

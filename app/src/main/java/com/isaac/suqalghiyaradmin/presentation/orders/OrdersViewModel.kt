@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.isaac.souqalghiyaradmin.domain.model.OrderItem
 
 @HiltViewModel
 class OrdersViewModel @Inject constructor(
@@ -25,7 +26,16 @@ class OrdersViewModel @Inject constructor(
             repository.updateOrder(orderId, sellingPrice, status)
         }
     }
-
+    // داخل OrdersViewModel
+    // داخل OrdersViewModel.kt
+    suspend fun getOrderItems(orderId: String): List<OrderItem> {
+        return repository.getOrderItems(orderId)
+    }
+    }
+    // أو بشكل أبسط للتعامل مع الـ Coroutines في الواجهة:
+    suspend fun fetchOrderItems(orderId: String): List<OrderItem> {
+        return repository.getOrderItems(orderId)
+    }
     // جلب القطع الفرعية
     suspend fun getItems(orderId: String) = repository.getOrderItems(orderId)
 }
