@@ -22,4 +22,9 @@ abstract class AppModule {
 fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
 
 
+@Provides
+    @Singleton
+    fun provideOrdersRepository(db: FirebaseFirestore): OrdersRepository = OrdersRepositoryImpl(db)
+
+
 }
