@@ -16,41 +16,65 @@ import javax.inject.Inject
 @HiltViewModel
 class ConstantsViewModel @Inject constructor(
     private val repository: ConstantsRepository,
-    private val db: FirebaseFirestore // حقن الفايربيز مباشرة للإضافة والحذف فقط
+    private val db: FirebaseFirestore
 ) : ViewModel() {
 
-    // استدعاء البيانات باستخدام الـ Repository
+    // جلب البيانات من الـ Repository
     val categories: StateFlow<List<SparePartCategory>> = repository.getSparePartCategories()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val qualities: StateFlow<List<QualityType>> = repository.getQualityTypes()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // دالة لإضافة فئة قطع غيار جديدة
+    // --- عمليات إضافة البيانات ---
+
     fun addCategory(categoryName: String) {
         viewModelScope.launch {
-            db.collection("spare_parts_categories").add(mapOf("spare_parts_categories" to categoryName))
+            db.collection("spare_parts_categories")
+                .add(mapOf("spare_parts_categories" to categoryName))
         }
     }
 
-    // دالة لإضافة نوع جودة جديد
     fun addQualityType(typeName: String) {
         viewModelScope.launch {
-            db.collection("quality_types").add(mapOf("quality_types" to typeName))
+            db.collection("quality_types")
+                .add(mapOf("quality_types" to typeName))
         }
     }
 
-    // دالة لحذف فئة قطع غيار
+    // --- عمليات تحديث البيانات ---
+
+    fun updateCategory(id: String, newName: String) {
+        viewModelScope.launch {
+            db.collection("spare_parts_categories")
+                .document(id)
+                .update("spare_parts_categories", newName)
+        }
+    }
+
+    fun updateQualityType(id: String, newName: String) {
+        viewModelScope.launch {
+            db.collection("quality_types")
+                .document(id)
+                .update("quality_types", newName)
+        }
+    }
+
+    // --- عمليات حذف البيانات ---
+
     fun deleteCategory(id: String) {
         viewModelScope.launch {
-            db.collection("spare_parts_categories").document(id).delete()
+            db.collection("spare_parts_categories")
+                .document(id)
+                .delete()
         }
     }
 
-    // دالة لحذف نوع جودة
     fun deleteQualityType(id: String) {
         viewModelScope.launch {
-            db.collection("quality_types").document(id).delete()
+            db.collection("quality_types")
+                .document(id)
+                .delete()
         }
     }
 }
