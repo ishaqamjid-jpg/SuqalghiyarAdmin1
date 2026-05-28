@@ -18,34 +18,26 @@ class OrdersViewModel @Inject constructor(
     private val db: FirebaseFirestore
 ) : ViewModel() {
 
-    // الحالة الحالية للطلبات المعلقة
     private val _orders = MutableStateFlow<List<Order>>(emptyList())
     val orders: StateFlow<List<Order>> = _orders.asStateFlow()
-
-    // حالة التحميل أثناء تحديث الطلب
-    private val _isUpdating = MutableStateFlow(false)
-    val isUpdating: StateFlow<Boolean> = _isUpdating.asStateFlow()
 
     init {
         fetchPendingOrders()
     }
 
-    // جلب الطلبات ذات الحالة "pending" وتحديثها لحظياً
     private fun fetchPendingOrders() {
+        // مراقبة الطلبات المعلقة فقط
         db.collection("orders")
             .whereEqualTo("order_status", "pending")
             .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    return@addSnapshotListener
-                }
-                
                 if (snapshot != null) {
-                    _orders.value = snapshot.toObjects(Order::class.java)
+                    _orders.value = snapshot.documents.map { doc ->
+                        doc.toObject(Order::class.java)?.copy(order_id = doc.id) ?: Order()
+                    }
                 }
             }
     }
 
-    // جلب تفاصيل قطع الغيار الفرعية لكل طلب
     suspend fun getOrderItems(orderId: String): List<OrderItem> {
         return try {
             val snapshot = db.collection("orders")
@@ -60,10 +52,8 @@ class OrdersViewModel @Inject constructor(
         }
     }
 
-    // تحديث الطلب (موافقة أو رفض)
     fun updateOrder(orderId: String, sellingPrice: Double, status: String) {
         viewModelScope.launch {
-            _isUpdating.value = true
             try {
                 db.collection("orders").document(orderId)
                     .update(
@@ -73,9 +63,7 @@ class OrdersViewModel @Inject constructor(
                         )
                     ).await()
             } catch (e: Exception) {
-                // يمكنك هنا إضافة معالجة للأخطاء (مثل إظهار رسالة خطأ)
-            } finally {
-                _isUpdating.value = false
+                // معالجة الخطأ
             }
         }
     }
