@@ -1,13 +1,21 @@
 package com.isaac.souqalghiyaradmin
 
 import android.app.Application
+import com.google.firebase.FirebaseApp
 import dagger.hilt.android.HiltAndroidApp
 
-// هذا الـ Annotation هو الذي يخبر Hilt ببدء تهيئة النظام بالكامل
 @HiltAndroidApp
 class SouqAlghiyarAdminApp : Application() {
+    
     override fun onCreate() {
         super.onCreate()
-        // يمكنك هنا تهيئة مكتبات أخرى مثل Firebase أو Crashlytics إذا لزم الأمر
+        
+        // تهيئة Firebase يدوياً لضمان جاهزيته قبل أي عملية اتصال في التطبيق
+        FirebaseApp.initializeApp(this)
+        
+        // يمكنك إضافة تهيئات أخرى هنا، مثل:
+        // - مكتبات التخزين المؤقت (Cache)
+        // - مكتبات تسجيل الأخطاء (Crashlytics)
+        // - مكتبات الإشعارات (Firebase Messaging)
     }
 }
