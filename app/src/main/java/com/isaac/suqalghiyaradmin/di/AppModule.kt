@@ -31,5 +31,10 @@ fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
 @Singleton
 fun provideAdsRepository(db: FirebaseFirestore): AdsRepository = AdsRepositoryImpl(db)
 
+@Provides
+@Singleton
+fun provideConstantsRepository(db: FirebaseFirestore): ConstantsRepository = ConstantsRepositoryImpl(db)
+
+
 
 }
