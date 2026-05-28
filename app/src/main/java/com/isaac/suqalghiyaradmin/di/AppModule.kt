@@ -27,4 +27,9 @@ fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
     fun provideOrdersRepository(db: FirebaseFirestore): OrdersRepository = OrdersRepositoryImpl(db)
 
 
+@Provides
+@Singleton
+fun provideAdsRepository(db: FirebaseFirestore): AdsRepository = AdsRepositoryImpl(db)
+
+
 }
